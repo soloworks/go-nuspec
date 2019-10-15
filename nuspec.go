@@ -3,6 +3,8 @@ package nuspec
 import (
 	"bytes"
 	"encoding/xml"
+	"io/ioutil"
+	"os"
 )
 
 // Dependency is used in the File struct
@@ -47,7 +49,26 @@ func New() *File {
 
 // FromFile pulls in a nuspec file drom the drive
 func FromFile(fn string) (*File, error) {
-	nsf := File{}
+
+	// Open File
+	xmlFile, err := os.Open(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	// Read all file
+	b, err := ioutil.ReadAll(xmlFile)
+	if err != nil {
+		return nil, err
+	}
+	// Unmarshal into struct
+	// Create empty struct
+	var nsf File
+	err = xml.Unmarshal(b, &nsf)
+	if err != nil {
+		return nil, err
+	}
+
 	return &nsf, nil
 }
 
