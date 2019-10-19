@@ -3,6 +3,7 @@ package nuspec
 import (
 	"bytes"
 	"encoding/xml"
+	"io"
 	"io/ioutil"
 	"os"
 )
@@ -47,7 +48,7 @@ func New() *File {
 	return &nsf
 }
 
-// FromFile pulls in a nuspec file drom the drive
+// FromFile reads a nuspec file from the file system
 func FromFile(fn string) (*File, error) {
 
 	// Open File
@@ -72,7 +73,7 @@ func FromFile(fn string) (*File, error) {
 	return &nsf, nil
 }
 
-// FromBytes pulls in a nuspec file drom the drive
+// FromBytes reads a nuspec file from a byte array
 func FromBytes(b []byte) (*File, error) {
 	nsf := File{}
 	err := xml.Unmarshal(b, &nsf)
@@ -82,7 +83,17 @@ func FromBytes(b []byte) (*File, error) {
 	return &nsf, nil
 }
 
-// ToBytes produces the nuspec in XML format
+// FromReader reads a nuspec file from a byte array
+func FromReader(r io.ReadCloser) (*File, error) {
+	// Read contents of reader
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return FromBytes(b)
+}
+
+// ToBytes exports the nuspec to bytes in XML format
 func (nsf *File) ToBytes() ([]byte, error) {
 	var b bytes.Buffer
 	// Unmarshal into XML
