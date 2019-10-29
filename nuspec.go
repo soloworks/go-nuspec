@@ -8,24 +8,33 @@ import (
 	"os"
 )
 
-// Dependency is used in the File struct
-type Dependency struct {
-	XMLName xml.Name `xml:"dependency"`
-	ID      string   `xml:"id,attr"`
-	Version string   `xml:"version,attr"`
+// File is used in the Nuspec struct
+type File struct {
+	Source string `xml:"src,attr"`
+	Target string `xml:"target,attr"`
 }
 
-// File Represents a .nuspec XML file found in the root of the .nupck files
-type File struct {
+// Dependency is used in the File struct
+type Dependency struct {
+	ID      string `xml:"id,attr"`
+	Version string `xml:"version,attr"`
+}
+
+// Nuspec Represents a .nuspec XML file found in the root of the .nupck files
+type Nuspec struct {
 	XMLName xml.Name `xml:"package"`
 	Xmlns   string   `xml:"xmlns,attr,omitempty"`
 	Meta    struct { // MetaData
-		ID               string `xml:"id"`
-		Version          string `xml:"version"`
-		Title            string `xml:"title,omitempty"`
-		Authors          string `xml:"authors"`
-		Owners           string `xml:"owners,omitempty"`
-		LicenseURL       string `xml:"licenseUrl,omitempty"`
+		ID         string `xml:"id"`
+		Version    string `xml:"version"`
+		Title      string `xml:"title,omitempty"`
+		Authors    string `xml:"authors"`
+		Owners     string `xml:"owners,omitempty"`
+		LicenseURL string `xml:"licenseUrl,omitempty"`
+		License    struct {
+			Text string `xml:",chardata"`
+			Type string `xml:"type,attr"`
+		} `xml:"license,omitempty"`
 		ProjectURL       string `xml:"projectUrl,omitempty"`
 		IconURL          string `xml:"iconUrl,omitempty"`
 		ReqLicenseAccept bool   `xml:"requireLicenseAcceptance"`
@@ -36,20 +45,23 @@ type File struct {
 		Language         string `xml:"language,omitempty"`
 		Tags             string `xml:"tags,omitempty"`
 		Dependencies     struct {
-			Dependency []Dependency
+			Dependency []Dependency `xml:"dependency"`
 		} `xml:"dependencies,omitempty"`
 	} `xml:"metadata"`
+	Files struct {
+		File []File `xml:"file"`
+	} `xml:"files,omitempty"`
 }
 
 // New returns a populated skeleton for a Nuget Packages request (/Packages)
-func New() *File {
-	nsf := File{}
+func New() *Nuspec {
+	nsf := Nuspec{}
 	nsf.Xmlns = `http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd`
 	return &nsf
 }
 
 // FromFile reads a nuspec file from the file system
-func FromFile(fn string) (*File, error) {
+func FromFile(fn string) (*Nuspec, error) {
 
 	// Open File
 	xmlFile, err := os.Open(fn)
@@ -64,7 +76,7 @@ func FromFile(fn string) (*File, error) {
 	}
 	// Unmarshal into struct
 	// Create empty struct
-	var nsf File
+	var nsf Nuspec
 	err = xml.Unmarshal(b, &nsf)
 	if err != nil {
 		return nil, err
@@ -74,8 +86,8 @@ func FromFile(fn string) (*File, error) {
 }
 
 // FromBytes reads a nuspec file from a byte array
-func FromBytes(b []byte) (*File, error) {
-	nsf := File{}
+func FromBytes(b []byte) (*Nuspec, error) {
+	nsf := Nuspec{}
 	err := xml.Unmarshal(b, &nsf)
 	if err != nil {
 		return nil, err
@@ -84,7 +96,7 @@ func FromBytes(b []byte) (*File, error) {
 }
 
 // FromReader reads a nuspec file from a byte array
-func FromReader(r io.ReadCloser) (*File, error) {
+func FromReader(r io.ReadCloser) (*Nuspec, error) {
 	// Read contents of reader
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -94,7 +106,7 @@ func FromReader(r io.ReadCloser) (*File, error) {
 }
 
 // ToBytes exports the nuspec to bytes in XML format
-func (nsf *File) ToBytes() ([]byte, error) {
+func (nsf *Nuspec) ToBytes() ([]byte, error) {
 	var b bytes.Buffer
 	// Unmarshal into XML
 	output, err := xml.MarshalIndent(nsf, "", "  ")
