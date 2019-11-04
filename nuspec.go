@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-// File is used in the Nuspec struct
+// File is used in the NuSpec struct
 type File struct {
 	Source string `xml:"src,attr"`
 	Target string `xml:"target,attr"`
@@ -20,8 +20,8 @@ type Dependency struct {
 	Version string `xml:"version,attr"`
 }
 
-// Nuspec Represents a .nuspec XML file found in the root of the .nupck files
-type Nuspec struct {
+// NuSpec Represents a .nuspec XML file found in the root of the .nupck files
+type NuSpec struct {
 	XMLName xml.Name `xml:"package"`
 	Xmlns   string   `xml:"xmlns,attr,omitempty"`
 	Meta    struct { // MetaData
@@ -54,14 +54,14 @@ type Nuspec struct {
 }
 
 // New returns a populated skeleton for a Nuget Packages request (/Packages)
-func New() *Nuspec {
-	nsf := Nuspec{}
+func New() *NuSpec {
+	nsf := NuSpec{}
 	nsf.Xmlns = `http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd`
 	return &nsf
 }
 
 // FromFile reads a nuspec file from the file system
-func FromFile(fn string) (*Nuspec, error) {
+func FromFile(fn string) (*NuSpec, error) {
 
 	// Open File
 	xmlFile, err := os.Open(fn)
@@ -76,7 +76,7 @@ func FromFile(fn string) (*Nuspec, error) {
 	}
 	// Unmarshal into struct
 	// Create empty struct
-	var nsf Nuspec
+	var nsf NuSpec
 	err = xml.Unmarshal(b, &nsf)
 	if err != nil {
 		return nil, err
@@ -86,8 +86,8 @@ func FromFile(fn string) (*Nuspec, error) {
 }
 
 // FromBytes reads a nuspec file from a byte array
-func FromBytes(b []byte) (*Nuspec, error) {
-	nsf := Nuspec{}
+func FromBytes(b []byte) (*NuSpec, error) {
+	nsf := NuSpec{}
 	err := xml.Unmarshal(b, &nsf)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func FromBytes(b []byte) (*Nuspec, error) {
 }
 
 // FromReader reads a nuspec file from a byte array
-func FromReader(r io.ReadCloser) (*Nuspec, error) {
+func FromReader(r io.ReadCloser) (*NuSpec, error) {
 	// Read contents of reader
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -106,7 +106,7 @@ func FromReader(r io.ReadCloser) (*Nuspec, error) {
 }
 
 // ToBytes exports the nuspec to bytes in XML format
-func (nsf *Nuspec) ToBytes() ([]byte, error) {
+func (nsf *NuSpec) ToBytes() ([]byte, error) {
 	var b bytes.Buffer
 	// Unmarshal into XML
 	output, err := xml.MarshalIndent(nsf, "", "  ")
